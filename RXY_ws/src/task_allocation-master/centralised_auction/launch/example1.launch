@@ -1,0 +1,45 @@
+<?xml version='1.0'?>
+
+<!-- Example 1, launches the centralised auction node to generate waypoint order.
+     Nothing to see in RVIZ, but will produce topics robot0/tasks and 
+     robot1/tasks, which are waypoint arrays. -->
+<launch>
+
+  <!-- Launch waypoint following.
+       tasks:  x,y,z,  x,y,z,w
+       robots: x,y,z                 -->
+  <node pkg="centralised_auction" type="centralised_auction_node" 
+        name="centralised_auction" output="screen">
+    <!-- <rosparam param="tasks">[ 1, -1, 0,  0, 0, 0, 1,
+                             -1,  1, 0,  0, 0, 0, 1, 
+                              2, -2, 0,  0, 0, 0, 1,
+                             -2, -4, 0,  0, 0, 0, 1]
+    </rosparam>
+    <rosparam param="robots">[1, 0, 0,
+                             -1, 0, 0]
+    </rosparam>       -->
+
+
+     <!-- kai ti de shi yan can shu  -->
+    <!-- <rosparam param="tasks">[ 1, 4, 0,  0, 0, 0, 1,
+                              3, 4, 0,  0, 0, 0, 1,
+                              5, 1, 0,  0, 0, 0, 1,
+                              6, 6, 0,  0, 0, 0, 1,
+                              10, 3, 0,  0, 0, 0, 1,    
+                              3, 1, 0,  0, 0, 0, 1] -->
+
+    <rosparam param="tasks">[ 1, 2, 0,  0, 0, 0, 1,
+                              3, 4, 0,  0, 0, 0, 1,
+                              5, 4, 0,  0, 0, 0, 1,
+                              6, 6, 0,  0, 0, 0, 1,
+                              10, 3, 0,  0, 0, 0, 1,    
+                              3, 3, 0,  0, 0, 0, 1]
+
+
+    </rosparam>
+    <rosparam param="robots">[1, 0, 0,
+                              0, 1, 0]
+    </rosparam> 
+  </node>
+  
+</launch>

@@ -1,0 +1,6 @@
+directory : "/home/xtark/RXY_ws/src/collect_data/scripts"
+one:
+  two: 2
+  three:
+    four: 4
+    five: 5

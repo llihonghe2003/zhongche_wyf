@@ -1,0 +1,5 @@
+Allocate them all to the first robot.
+for( int i=0; i<unallocated_tasks.size(); i++ ){
+Task t = unallocated_tasks[i];
+int r = i % num_robots;
+allocated_tasks[r].array.push_back(t);

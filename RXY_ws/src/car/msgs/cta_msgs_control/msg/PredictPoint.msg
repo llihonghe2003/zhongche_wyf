@@ -1,0 +1,1 @@
+cta_msgs/PosAll[]       waypoints

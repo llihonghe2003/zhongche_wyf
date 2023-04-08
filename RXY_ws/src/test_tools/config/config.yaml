@@ -1,0 +1,9 @@
+#摄像头参数
+cam:
+ FRAME_WIDTH : 1920
+ FRAME_HIGH : 1080
+#16mm 1920*1080参数
+ fc_x : 5586
+ fc_y : 5586
+ cc_x : 960
+ cc_y : 540

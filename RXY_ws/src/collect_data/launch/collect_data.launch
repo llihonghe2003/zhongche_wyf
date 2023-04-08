@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="collect_data" type="collect_data"  name="collect_data" output="screen" />
+        <rosparam file="$(find collect_data)/config/config.yaml"/>
+</launch>

@@ -40,7 +40,7 @@ void Planner::run() {
   ros::Rate loop(rosLoopHz);
 
   // load global route
-  string filename = "/home/xtark/rxy_ws/RXY_ws/src/route/foo777.txt";
+  string filename = "/home/xtark/xtark_02/RXY_ws/src/route/foo777.txt";
   if (this->SetGobalRoute(filename)) {
     ROS_INFO("Success to Load Global Route !!!!!");
   } else {

@@ -2,7 +2,7 @@
 double Distance = 0.3;
 // ofstream OutFile("/home/tju001/CtaAuto/WIDC2021/ch_data.txt");
 ofstream OutFile(
-    "/home/xtark/rxy_ws/RXY_ws/src/car/computer/control/MPC_controller/"
+    "/home/xtark/xtark_02/RXY_ws/src/car/computer/control/MPC_controller/"
     "trajectory/ch_data.txt");
 //
 // MPC class definition implementation.

@@ -223,7 +223,12 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
   this->rosNode = nh;
   this->rosLoopHz = frq;
 
+  XmlRpc::XmlRpcValue params;
+  nh.getParam("params", params);
+  std::cout << params["environment"] << "!" << endl;
+
   //发布器
+
   pubMode = rosNode.advertise<cta_msgs_control::ControlMode>(
       UsrLib::TOPIC_CONTROL_MODE, 1);
   pubMotion = rosNode.advertise<cta_msgs_control::MotionControl>(
@@ -235,43 +240,71 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
       rosNode.advertise<geometry_msgs::Twist>("cmd_vel", 10);  //发布控制信号
   pos_3 = rosNode.advertise<cta_msgs_control::PredictPoint>(
       "poseAll_3", 1);  //发布3车最优位置序列
+
   //订阅器
+  if (params["environment"] == "simulation") {
+    ROS_INFO("订阅仿真位置信息");
+    std::cout << params["simulation"] << "!" << endl;
+    //订阅本车规划的参考位置
+    subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1,
+                                   &Controller::Callback_UpdatePlanTrj, this);
+    // subPlanTrj = rosNode.subscribe("/r2/msg_plan_local", 1,
+    // &Controller::Callback_UpdatePlanTrj, this);
 
-  //订阅本车规划的参考位置
-  subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1,
-                                 &Controller::Callback_UpdatePlanTrj, this);
-  // subPlanTrj = rosNode.subscribe("/r2/msg_plan_local", 1,
-  // &Controller::Callback_UpdatePlanTrj, this);
+    //订阅本车的仿真位置
+    subSelfPose = rosNode.subscribe(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1,
+                                    &Controller::Callback_UpdateSelfPose, this);
 
-  //订阅本车的仿真位置
-  subSelfPose = rosNode.subscribe(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1,
-                                  &Controller::Callback_UpdateSelfPose, this);
+    //订阅xtark_01的仿真位置
+    AvoidancePose =
+        rosNode.subscribe("/xtark_01/msg_perception_selfpose", 1,
+                          &Controller::Callback_AvoidancePose, this);
 
-  // //订阅avoidance的仿真位置
-  // AvoidancePose = rosNode.subscribe("msg_pose_avoidance", 1,
-  //                                   &Controller::Callback_AvoidancePose,
-  //                                   this);
+    //订阅avoidance的仿真位置
+    // AvoidancePose = rosNode.subscribe(
+    //     "msg_pose_avoidance", 1, &Controller::Callback_AvoidancePose, this);
 
-  //订阅xtark_01的仿真位置
-  AvoidancePose = rosNode.subscribe("/xtark_01/msg_perception_selfpose", 1,
-                                    &Controller::Callback_AvoidancePose, this);
+  } else if (params["environment"] == "soloExp") {
+    ROS_INFO("订阅真实单车位姿信息");
+    std::cout << params["environment"] << "!" << endl;
 
-  //订阅本车的真实位置
-  // subTheta =  rosNode.subscribe("odom_raw", 1,
-  // &Controller::Callback_UpdateTheta, this);
-  // subTheta =  rosNode.subscribe("odom", 1, &Controller::Callback_UpdateTheta,
-  // this); subPoints =  rosNode.subscribe("nlink_linktrack_nodeframe2", 1,
-  // &Controller::Callback_UpdatePoints, this);
+    //订阅本车的真实位姿信息
+    subTheta =
+        rosNode.subscribe("odom", 1, &Controller::Callback_UpdateTheta, this);
+    subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1,
+                                  &Controller::Callback_UpdatePoints, this);
 
-  // subSelfPose_2 = rosNode.subscribe("/r2/msg_perception_selfpose", 1,
-  // &Controller::Callback_UpdateSelfPose_2, this);//订阅2车仿真位置信息
-  // subPoseAll_2 = rosNode.subscribe("/r2/poseAll_2", 1,
-  // &Controller::Callback_UpdateAllPos_2, this);  //订阅2车仿真预测信息
+  } else if (params["environment"] == "multiExp") {
+    ROS_INFO("订阅真实多车位姿信息");
+    std::cout << params["environment"] << "!" << endl;
 
-  // subTheta_2 =  rosNode.subscribe("/r2/odom_raw", 1,
-  // &Controller::Callback_UpdateTheta_2, this); subPoints_2 =
-  // rosNode.subscribe("/r2/nlink_linktrack_nodeframe2", 1,
-  // &Controller::Callback_UpdatePoints_2, this);
+    //订阅本车真实位姿信息
+    subTheta = rosNode.subscribe("odom_raw", 1,
+                                 &Controller::Callback_UpdateTheta, this);
+    subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1,
+                                  &Controller::Callback_UpdatePoints, this);
+
+    //订阅xtark_01车真实位姿信息
+    subTheta_2 = rosNode.subscribe("/xtark_01/odom_raw", 1,
+                                   &Controller::Callback_UpdateTheta_2, this);
+    subPoints_2 = rosNode.subscribe("/xtark_01/nlink_linktrack_nodeframe2", 1,
+                                    &Controller::Callback_UpdatePoints_2, this);
+
+    //订阅xtark_01的仿真避障位置
+    AvoidancePose =
+        rosNode.subscribe("/xtark_01/msg_perception_selfpose", 1,
+                          &Controller::Callback_AvoidancePose, this);
+    /*
+    //订阅2车仿真预测信息
+    subSelfPose_2 =
+        rosNode.subscribe("/r2/msg_perception_selfpose", 1,
+                          &Controller::Callback_UpdateSelfPose_2, this);
+
+    //订阅2车仿真位置信息
+    subPoseAll_2 = rosNode.subscribe(
+        "/r2/poseAll_2", 1, &Controller::Callback_UpdateAllPos_2, this);
+    */
+  }
 }
 
 Controller::~Controller() {}

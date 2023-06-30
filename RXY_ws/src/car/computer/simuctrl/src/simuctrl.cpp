@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
   // // foo777
   x = 1.5;
   y = 0;
-  theta = 0.8027890458517215;
+  theta = 0.7898;
   v = 0;
 
   // 订阅控制量信息

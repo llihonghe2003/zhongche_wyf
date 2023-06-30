@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
   double loopHz = 10;
   setlocale(LC_ALL, "");
-  getParam<int>("cam/FRAME_WIDTH", 0);
+  getParam<string>("params/environment", "123");
   MPCtrack::Controller* exe = new MPCtrack::Controller(nh, loopHz);
   // PureTrack::Controller *exe = new PureTrack::Controller(nh, loopHz);
   //调用对象run函数，外部直接调用的类应当包含至少一个run函数

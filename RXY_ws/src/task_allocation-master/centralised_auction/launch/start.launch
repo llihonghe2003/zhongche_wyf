@@ -3,9 +3,12 @@
 
     <!-- 设置当前机器人命名空间 -->
 
-    <arg name="namespace" default="xtark_02"/>
+    <arg name="namespace" default="xtark_01"/>
 
  <group ns="$(arg namespace)">
+  <!-- 启动MPC_controller驱动包 -->
+     <node pkg="usrlib" type="usrfunction" name="usrfunction" output="screen"></node>
+            <rosparam file="$(find test_tools)/config/config.yaml"/>
     <!-- 启动xtark_driver驱动包 -->
     <!-- <node name="xtark_driver" pkg="xtark_driver" type="xtark_driver" output="screen" respawn="true">
         <rosparam file="$(find xtark_driver)/config/xtark_params.yaml" command="load"/>
@@ -20,9 +23,8 @@
     </node> -->
 
     <!-- 启动planning_globaltrack驱动包 -->
-    <node pkg="planning_globaltrack" type="planning_globaltrack" name="planning_globaltrack" output="screen">
-    </node>
-    
+    <node pkg="planning_globaltrack" type="planning_globaltrack" name="planning_globaltrack" output="screen"></node>
+        <rosparam file="$(find test_tools)/config/config.yaml"/>
 
     <!-- 启动获取UWB位置 -->
     <!-- <node name="uwb_position" pkg="uwb_position" type="uwb_position.py" output="screen" respawn="false"/> -->

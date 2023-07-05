@@ -40,8 +40,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
   setlocale(LC_ALL, "");
 
-  pubLoc = nh.advertise<cta_msgs_perception::SelfPose>(
-      UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1);
+  pubLoc = nh.advertise<cta_msgs_perception::SelfPose>(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1);
 
   // foo333
   // x = 0;
@@ -49,10 +48,10 @@ int main(int argc, char** argv) {
   // theta = 0;
   // v = 0;
 
-  // // foo777
-  x = 1.5;
+  // 仿真初始位置
+  x = 0;
   y = 0;
-  theta = 0.7898;
+  theta = 0.7867;
   v = 0;
 
   // 订阅控制量信息
@@ -60,8 +59,7 @@ int main(int argc, char** argv) {
   // Callback_Ctrl);
 
   // 订阅控制量信息
-  ros::Subscriber cmd_sub_ =
-      nh.subscribe<geometry_msgs::Twist>("cmd_vel", 10, Callback_Ctrl);
+  ros::Subscriber cmd_sub_ = nh.subscribe<geometry_msgs::Twist>("cmd_vel", 10, Callback_Ctrl);
   int iters = 4000;
   size_t i = 0;
   double dt = 0.02;

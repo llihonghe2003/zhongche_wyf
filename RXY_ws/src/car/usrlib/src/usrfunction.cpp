@@ -1,8 +1,3 @@
-#include "../include/usrlib/usrlib.h"
+// #include "../include/usrlib/usrlib.h"
 
-using namespace std;
-
-namespace UsrLib{
-
-}
-
+namespace UsrLib {}  // namespace UsrLib

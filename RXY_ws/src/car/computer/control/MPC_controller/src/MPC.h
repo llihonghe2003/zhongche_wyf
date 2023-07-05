@@ -26,6 +26,12 @@
 #include "cta_msgs_sensor/Imu.h"
 #include "usrlib/usrlib.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include <yaml-cpp/yaml.h>
+#include <fstream>
+
 using namespace std;
 using CppAD::AD;
 
@@ -40,12 +46,10 @@ T getParam(const std::string &name,
   T v;
   if (ros::param::get(name, v))  // get parameter by name depend on ROS.
   {
-    ROS_INFO_STREAM("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Found parameter: "
-                    << name << ",\tvalue: " << v);
+    ROS_INFO_STREAM("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Found parameter: " << name << ",\tvalue: " << v);
     return v;
   } else
-    ROS_WARN_STREAM("Cannot find value for parameter: "
-                    << name << ",\tassigning default: " << defaultValue);
+    ROS_WARN_STREAM("Cannot find value for parameter: " << name << ",\tassigning default: " << defaultValue);
   return defaultValue;  // if the parameter haven't been set,it's value will
                         // return defaultValue.
 }
@@ -246,25 +250,19 @@ class Controller {
  public:
   void DoControl(const ros::TimerEvent &e);
 
-  void Callback_UpdateSelfPose(
-      const cta_msgs_perception::SelfPose::ConstPtr &msg);
-  void Callback_AvoidancePose(
-      const cta_msgs_perception::SelfPose::ConstPtr &msg);
-  void Callback_UpdateSelfPose_2(
-      const cta_msgs_perception::SelfPose::ConstPtr &msg);
-  void Callback_UpdateAllPos_2(
-      const cta_msgs_control::PredictPoint::ConstPtr &msg);
-  void Callback_UpdatePlanTrj(
-      const cta_msgs_planning::LocalRoute2d::ConstPtr &msg);
+  void Callback_UpdateSelfPose(const cta_msgs_perception::SelfPose::ConstPtr &msg);
+  void Callback_AvoidancePose(const cta_msgs_perception::SelfPose::ConstPtr &msg);
+  void Callback_UpdateSelfPose_2(const cta_msgs_perception::SelfPose::ConstPtr &msg);
+  void Callback_UpdateAllPos_2(const cta_msgs_control::PredictPoint::ConstPtr &msg);
+  void Callback_UpdatePlanTrj(const cta_msgs_planning::LocalRoute2d::ConstPtr &msg);
   void Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg);
-  void Callback_UpdatePoints(
-      const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
+  void Callback_UpdatePoints(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
   void Callback_UpdateTheta_2(const nav_msgs::Odometry::ConstPtr &msg);
-  void Callback_UpdatePoints_2(
-      const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
+  void Callback_UpdatePoints_2(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
   void PublishTopics();
 
   void GetGoalPose();
+  // ofstream OutFile();
 
   void AllController();
   void LampController();
@@ -286,10 +284,7 @@ class MPC {
 
   virtual ~MPC();
 
-  Solution Solve(Eigen::VectorXd x0, Eigen::VectorXd x_avoidance,
-                 Eigen::VectorXd X_ref, Eigen::VectorXd Y_ref,
-                 Eigen::VectorXd Theta_ref, Eigen::VectorXd V_ref,
-                 Eigen::VectorXd control_out);
+  Solution Solve(Eigen::VectorXd x0, Eigen::VectorXd x_avoidance, Eigen::VectorXd X_ref, Eigen::VectorXd Y_ref, Eigen::VectorXd Theta_ref, Eigen::VectorXd V_ref, Eigen::VectorXd control_out);
 };
 
 class FG_eval {
@@ -308,9 +303,7 @@ class FG_eval {
 
   // Coefficients of the fitted polynomial.
   // 先取出多项式系数，和 预测的动作
-  FG_eval(Eigen::VectorXd x0, Eigen::VectorXd x_avoidance,
-          Eigen::VectorXd X_ref, Eigen::VectorXd Y_ref,
-          Eigen::VectorXd Theta_ref, Eigen::VectorXd V_ref,
+  FG_eval(Eigen::VectorXd x0, Eigen::VectorXd x_avoidance, Eigen::VectorXd X_ref, Eigen::VectorXd Y_ref, Eigen::VectorXd Theta_ref, Eigen::VectorXd V_ref,
           Eigen::VectorXd control_out)  // 构造函数
   {
     // 传入参考轨迹
@@ -385,25 +378,17 @@ class FG_eval {
       AD<double> Ey_k = vars[e_y_start + i];
       AD<double> Etheta_k = vars[e_theta_start + i];
       AD<double> theta_k = Theta_ref[i] - Etheta_k;
-      AD<double> x_k =
-          X_ref[i] - CppAD::cos(theta_k) * Ex_k + CppAD::sin(theta_k) * Ey_k;
-      AD<double> y_k =
-          Y_ref[i] - CppAD::cos(theta_k) * Ey_k - CppAD::sin(theta_k) * Ex_k;
+      AD<double> x_k = X_ref[i] - CppAD::cos(theta_k) * Ex_k + CppAD::sin(theta_k) * Ey_k;
+      AD<double> y_k = Y_ref[i] - CppAD::cos(theta_k) * Ey_k - CppAD::sin(theta_k) * Ex_k;
       //
       AD<double> xe_ob = x_k - X_avo;
       AD<double> ye_ob = y_k - Y_avo;
-      AD<double> e_ob =
-          CppAD::pow(CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2), 0.5);
+      AD<double> e_ob = CppAD::pow(CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2), 0.5);
 
-      AD<double> beita_x =
-          (x_k - X_avo) * cos(Theta_avo) + (y_k - Y_avo) * sin(Theta_avo);
-      AD<double> beita_y =
-          (y_k - Y_avo) * cos(Theta_avo) + (x_k - X_avo) * sin(Theta_avo);
+      AD<double> beita_x = (x_k - X_avo) * cos(Theta_avo) + (y_k - Y_avo) * sin(Theta_avo);
+      AD<double> beita_y = (y_k - Y_avo) * cos(Theta_avo) + (x_k - X_avo) * sin(Theta_avo);
       AD<double> beita_oa = atan(beita_y / beita_x);
-      AD<double> D = a_ * b_ /
-                     CppAD::pow(CppAD::pow(a_ * cos(beita_oa), 2) +
-                                    CppAD::pow(b_ * sin(beita_oa), 2),
-                                0.5);
+      AD<double> D = a_ * b_ / CppAD::pow(CppAD::pow(a_ * cos(beita_oa), 2) + CppAD::pow(b_ * sin(beita_oa), 2), 0.5);
       // fg[0] += 1/D * ( e_ob - D);
       // fg[0] += lamuda_ob / (1+CppAD::exp(-k_ob * ( CppAD::pow(D, 2)-(
       // CppAD::pow(xe_ob, 2)+ CppAD::pow(ye_ob, 2)))));
@@ -411,9 +396,7 @@ class FG_eval {
       //                                               (CppAD::pow(xe_ob, 2) +
       //                                                CppAD::pow(ye_ob,
       //                                                2)))));
-      fg[0] += lamuda_ob / (1 + CppAD::exp(-3 * (CppAD::pow(0.5 * D, 2) -
-                                                 (CppAD::pow(xe_ob, 2) +
-                                                  CppAD::pow(ye_ob, 2)))));
+      fg[0] += lamuda_ob / (1 + CppAD::exp(-3 * (CppAD::pow(0.5 * D, 2) - (CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2)))));
     }
 
     // 初始约束
@@ -436,10 +419,8 @@ class FG_eval {
       AD<double> Etheta_k = vars[e_theta_start + i];
 
       AD<double> theta_k = Theta_ref[i] - Etheta_k;
-      AD<double> x_k =
-          X_ref[i] - CppAD::cos(theta_k) * Ex_k + CppAD::sin(theta_k) * Ey_k;
-      AD<double> y_k =
-          Y_ref[i] - CppAD::cos(theta_k) * Ey_k - CppAD::sin(theta_k) * Ex_k;
+      AD<double> x_k = X_ref[i] - CppAD::cos(theta_k) * Ex_k + CppAD::sin(theta_k) * Ey_k;
+      AD<double> y_k = Y_ref[i] - CppAD::cos(theta_k) * Ey_k - CppAD::sin(theta_k) * Ex_k;
       AD<double> xe_ob = x_k - posx_ob;
       AD<double> ye_ob = y_k - posy_ob;
 
@@ -456,13 +437,12 @@ class FG_eval {
 
       AD<double> V_k = -V_e_k + V_ref[i] * CppAD::cos(Etheta_k);
       AD<double> W_k = (-W_e_k + V_ref[i] * CppAD::sin(Etheta_k)) / row;
-      AD<double> Delta_k = atan(W_k * row / V_k);
+      // AD<double> Delta_k = atan(W_k * row / V_k);
 
       fg[1 + v_start + i] = v_cons - V_k;
       fg[1 + omega_start + i] = omega_cons - W_k;
 
-      fg[1 + x_obstacle + i] =
-          xb_cons - CppAD::pow(xe_ob, 2);  //- CppAD::pow(ye_ob, 2);  //???
+      fg[1 + x_obstacle + i] = xb_cons - CppAD::pow(xe_ob, 2);  //- CppAD::pow(ye_ob, 2);  //???
       fg[1 + y_obstacle + i] = yb_cons - CppAD::pow(ye_ob, 2);
 
       //
@@ -488,27 +468,22 @@ class FG_eval {
       // fg[1 + omega_e_start + i] = domega_cons - omega_de;
 
       // Recall the equations for the model:
-      // E_theta[k+1] =  E_theta[k] + dt * (Omega_ref[k] - (-W_e_k + V_ref[k] *
-      // sin(e_theta[k]))/row) E_x[k+1] = E_x[k] + dt * ((-w_e_k + V_ref[k] *
-      // CppAD::sin(E_theta[k]))/row * E_y_k + v_e_k) E_y[k+1] == E_y{k} + T *
-      // (-(-we{k} + V_r{k} * sin(E_theta{k}))/row * E_x{k} + we{k})];
+      // E_theta[k + 1] = E_theta[k] + dt * (Omega_ref[k] - (-W_e_k + V_ref[k] * sin(e_theta[k])) / row);
+      // E_x[k + 1] = E_x[k] + dt * ((-w_e_k + V_ref[k] * CppAD::sin(E_theta[k])) / row * E_y_k + v_e_k);
+      // E_y[k + 1] == E_y{k} + T *(-(-we{k} + V_r{k} * sin(E_theta{k})) / row * E_x{k} + we{k});
 
       // 等式约束 将变量都写在同一侧 另一侧 都是 0
 
       fg[2 + e_x_start + i] = Ex_k_1 - (Ex_k + (W_k * Ey_k + V_e_k) * dt);
       fg[2 + e_y_start + i] = Ey_k_1 - (Ey_k + (-W_k * Ex_k + W_e_k) * dt);
-      fg[2 + e_theta_start + i] =
-          Etheta_k_1 -
-          (Etheta_k + ((Theta_ref[i + 1] - Theta_ref[i]) / dt - W_k) * dt);
+      fg[2 + e_theta_start + i] = Etheta_k_1 - (Etheta_k + ((Theta_ref[i + 1] - Theta_ref[i]) / dt - W_k) * dt);
     }
   }
 };
 
 int FindNearDouble(double x, double *X_ref, int crow);
-int FindNearCircle(double x, double y, double theta, double *X_ref,
-                   double *Y_ref, double *Theta_ref, int crow, int Init_index);
-int FindOuD(double x, double y, double theta, double *X_ref, double *Y_ref,
-            double *Theta_ref, int crow, int Init_index);
+int FindNearCircle(double x, double y, double theta, double *X_ref, double *Y_ref, double *Theta_ref, int crow, int Init_index);
+int FindOuD(double x, double y, double theta, double *X_ref, double *Y_ref, double *Theta_ref, int crow, int Init_index);
 
 // Struct for the car information
 // 记录车辆的位姿信息结构体

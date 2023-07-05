@@ -1,4 +1,6 @@
-
 params:
-  environment: "simulation" # simulation soloExp  multiExp
+  name: xtark_01
+  environment: simulation
+  reference: foo666
+  data_num: 5
   simulation: false

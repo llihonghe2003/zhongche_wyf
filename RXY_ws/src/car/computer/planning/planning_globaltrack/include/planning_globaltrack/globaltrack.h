@@ -1,86 +1,88 @@
 #ifndef _GLOBALTRACK_H
 #define _GLOBALTRACK_H
 
-#include <ros/ros.h>
 #include <math.h>
-#include <vector>
+#include <ros/ros.h>
 #include <algorithm>
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
-#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
-#include "usrlib/usrlib.h"
+#include <nav_msgs/Odometry.h>
+#include <nlink_parser/LinktrackNodeframe2.h>
 #include "cta_msgs/WayPoint2d.h"
 #include "cta_msgs_perception/SelfPose.h"
 #include "cta_msgs_planning/DecisionBehavior.h"
 #include "cta_msgs_planning/GlobalRoute2d.h"
 #include "cta_msgs_planning/LocalRoute2d.h"
-#include <nlink_parser/LinktrackNodeframe2.h>
-#include <nav_msgs/Odometry.h>
+#include "usrlib/usrlib.h"
+// extern XmlRpc::XmlRpcValue params456;
+namespace PlannerGlobalTrack {
 
-namespace PlannerGlobalTrack{
+struct Pose2D {
+  double x;
+  double y;
+  double h;
+  double v;
+};
 
-    struct Pose2D{
-        double x;
-        double y;
-        double h;
-        double v;
-    };
+typedef std::vector<Pose2D> Path;
 
-    typedef std::vector<Pose2D> Path;
+class Planner {
+ private:
+  ros::NodeHandle rosNode;
+  double rosLoopHz;
 
-    class Planner{
+  ros::Publisher pubBehDec;
+  ros::Publisher pubGlbRoute;
+  ros::Publisher pubLocTrj;
 
-        private:
-            ros::NodeHandle rosNode;
-            double rosLoopHz;
+  ros::Subscriber subSelfPose;
+  ros::Subscriber subSelfTheta;
+  ros::Subscriber subSelfPoints;
 
-            ros::Publisher pubBehDec;
-            ros::Publisher pubGlbRoute;
-            ros::Publisher pubLocTrj;
+  bool isRun;
+  Path glbRoute;
 
-            ros::Subscriber subSelfPose;
-            ros::Subscriber subSelfTheta;
-            ros::Subscriber subSelfPoints;
+  Pose2D nowPos;
+  cta_msgs_planning::DecisionBehavior msgBeh;
+  cta_msgs_planning::GlobalRoute2d msgGlbRoute;
+  cta_msgs_planning::LocalRoute2d msgLocTrj;
 
-            bool isRun;
-            Path glbRoute;
+ public:
+  Planner();
+  Planner(ros::NodeHandle &nh, const double frq);
+  virtual ~Planner();
+  void run();
 
-            Pose2D nowPos;
-            cta_msgs_planning::DecisionBehavior msgBeh;
-            cta_msgs_planning::GlobalRoute2d msgGlbRoute;
-            cta_msgs_planning::LocalRoute2d msgLocTrj;
-            
-        public:
-            Planner();
-            Planner(ros::NodeHandle &nh, const double frq);
-            virtual ~Planner();
-            void run();
+ public:
+  void Callback_UpdateSelfPose(
+      const cta_msgs_perception::SelfPose::ConstPtr &msg);
+  void Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg);
+  void Callback_UpdatePoints(
+      const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
 
-        public:
-            void Callback_UpdateSelfPose(const cta_msgs_perception::SelfPose::ConstPtr &msg);
-            void Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg);
-            void Callback_UpdatePoints(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
-            
-            bool PlanBehavior();
-            bool PlanGlobalRoute();
-            bool PlanLocalTrajectory();
+  bool PlanBehavior();
+  bool PlanGlobalRoute();
+  bool PlanLocalTrajectory();
 
-            bool SetGobalRoute(std::string filename);
-            int GetRefernum(const Pose2D pos);
+  bool SetGobalRoute(std::string filename);
+  int GetRefernum(const Pose2D pos);
 
-            cv::Mat Plot(const std::string win, const std::vector<double> x, const std::vector<double> y, const cv::Scalar color, int linewidth);
+  cv::Mat Plot(const std::string win, const std::vector<double> x,
+               const std::vector<double> y, const cv::Scalar color,
+               int linewidth);
 
-            double Dis(const Pose2D p1, const Pose2D p2);
-            double Ang(const Pose2D p1, const Pose2D p2);
-            double Uag(const double a);
+  double Dis(const Pose2D p1, const Pose2D p2);
+  double Ang(const Pose2D p1, const Pose2D p2);
+  double Uag(const double a);
+};
 
-    };
+}  // namespace PlannerGlobalTrack
 
-}
-
-#endif //_GLOBALTRACK_H
+#endif  //_GLOBALTRACK_H

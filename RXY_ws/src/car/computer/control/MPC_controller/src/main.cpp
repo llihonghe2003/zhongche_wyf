@@ -8,6 +8,19 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
   double loopHz = 10;
   setlocale(LC_ALL, "");
+  ros::param::get("params", UsrLib::params);
+
+  if (UsrLib::params["name"] == "xtark_01") {
+    ros::param::set("params/avo_name", "xtark_02");
+    ros::param::get("params", UsrLib::params);
+    ROS_ERROR_STREAM("当前障碍物是：" << UsrLib::params["avo_name"]);
+  } else if (UsrLib::params["name"] == "xtark_02") {
+    ros::param::set("params/avo_name", "xtark_01");
+    ros::param::get("params", UsrLib::params);
+    ROS_ERROR_STREAM("当前障碍物是：" << UsrLib::params["avo_name"]);
+  }
+
+  ROS_ERROR_STREAM("当前车辆是：" << UsrLib::params);
   getParam<string>("params/environment", "123");
   MPCtrack::Controller* exe = new MPCtrack::Controller(nh, loopHz);
   // PureTrack::Controller *exe = new PureTrack::Controller(nh, loopHz);

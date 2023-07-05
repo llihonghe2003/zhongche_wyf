@@ -128,6 +128,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+link_directories(/usr/local/lib)
+include_directories(/usr/local/include/yaml-cpp)
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/controller_puretracking.cpp
@@ -231,7 +234,7 @@ target_link_libraries(MPC_controller
   ${catkin_LIBRARIES} ipopt MPC
 )
 target_link_libraries(MPC_controller
-  usrlib
+  usrlib yaml-cpp
   ${catkin_LIBRARIES}
   #OdrManager
 )

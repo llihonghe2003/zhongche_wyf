@@ -12,9 +12,7 @@ Planner::Planner(ros::NodeHandle &nh, const double frq) {
   this->isRun = false;
 
   //订阅器     仿真位置
-  this->subSelfPose =
-      rosNode.subscribe(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1,
-                        &Planner::Callback_UpdateSelfPose, this);
+  this->subSelfPose = rosNode.subscribe(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1, &Planner::Callback_UpdateSelfPose, this);
   //订阅器     实际位置
   // this->subSelfTheta = rosNode.subscribe("odom_raw",
   // 1,&Planner::Callback_UpdateTheta, this);
@@ -24,27 +22,31 @@ Planner::Planner(ros::NodeHandle &nh, const double frq) {
   // &Planner::Callback_UpdatePoints, this);
 
   //发布器  不用
-  this->pubBehDec = rosNode.advertise<cta_msgs_planning::DecisionBehavior>(
-      UsrLib::TOPIC_PLAN_BEHAVIOR, 1);
-  this->pubGlbRoute = rosNode.advertise<cta_msgs_planning::GlobalRoute2d>(
-      UsrLib::TOPIC_PLAN_GLOBALROUTE, 1);
+  this->pubBehDec = rosNode.advertise<cta_msgs_planning::DecisionBehavior>(UsrLib::TOPIC_PLAN_BEHAVIOR, 1);
+  this->pubGlbRoute = rosNode.advertise<cta_msgs_planning::GlobalRoute2d>(UsrLib::TOPIC_PLAN_GLOBALROUTE, 1);
 
   //发布器  参考
-  this->pubLocTrj = rosNode.advertise<cta_msgs_planning::LocalRoute2d>(
-      UsrLib::TOPIC_PLAN_LOCALROUTE, 1);
+  this->pubLocTrj = rosNode.advertise<cta_msgs_planning::LocalRoute2d>(UsrLib::TOPIC_PLAN_LOCALROUTE, 1);
 }
 
 Planner::~Planner() {}
 
 void Planner::run() {
   ros::Rate loop(rosLoopHz);
-
+  // XmlRpc::XmlRpcValue UsrLib::params;
+  // ros::param::get("params", UsrLib::params);
+  // UsrLib::paramss = 1;
+  // extern int UsrLib::paramss;
+  // std::cout << UsrLib::paramss << endl;
   // load global route
-  string filename = "/home/xtark/xtark_02/RXY_ws/src/route/foo777.txt";
+
+  ROS_ERROR_STREAM("当前车辆是：" << UsrLib::params);
+  string filename = string("/home/xtark/") + string(UsrLib::params["name"]) + string("/RXY_ws/src/route/") + string(UsrLib::params["reference"]) + string(".txt");
+  ROS_ERROR_STREAM(filename);
   if (this->SetGobalRoute(filename)) {
     ROS_INFO("Success to Load Global Route !!!!!");
   } else {
-    ROS_INFO("Fail to Load Global Route !!!!!");
+    ROS_ERROR("Fail to Load Global Route !!!!!");
     return;
   }
 
@@ -71,8 +73,7 @@ void Planner::run() {
 }
 
 //订阅仿真位置
-void Planner::Callback_UpdateSelfPose(
-    const cta_msgs_perception::SelfPose::ConstPtr &msg) {
+void Planner::Callback_UpdateSelfPose(const cta_msgs_perception::SelfPose::ConstPtr &msg) {
   nowPos.x = msg->state.pos.x;
   nowPos.y = msg->state.pos.y;
   nowPos.h = msg->state.rot.z;
@@ -88,8 +89,7 @@ void Planner::Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg) {
 }
 
 //订阅真实位置
-void Planner::Callback_UpdatePoints(
-    const nlink_parser::LinktrackNodeframe2::ConstPtr &msg) {
+void Planner::Callback_UpdatePoints(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg) {
   nowPos.x = msg->pos_3d[0];
   nowPos.y = msg->pos_3d[1];
   //    ROS_INFO("************************x:%.6f,
@@ -156,8 +156,7 @@ bool Planner::PlanLocalTrajectory() {
     return false;
   } else {
     Pose2D pos = this->glbRoute[refNum];
-    ROS_INFO("Ref = %d, x = %.3f, y = %.3f, h = %.3f", refNum, pos.x, pos.y,
-             pos.h);
+    ROS_INFO("Ref = %d, x = %.3f, y = %.3f, h = %.3f", refNum, pos.x, pos.y, pos.h);
   }
 
   int stNum = refNum;
@@ -216,7 +215,7 @@ bool Planner::SetGobalRoute(string filename) {
   ifstream infile;
   infile.open(filename.c_str());
   if (!infile.is_open()) {
-    ROS_INFO("File Open Failed !!!!!!");
+    ROS_ERROR("File Open Failed !!!!!!");
     return false;
   }
 
@@ -255,9 +254,7 @@ int Planner::GetRefernum(const Pose2D pos) {
   return refnum;
 }
 
-cv::Mat Planner::Plot(const string win, const vector<double> x,
-                      const vector<double> y, const cv::Scalar color,
-                      int linewidth) {
+cv::Mat Planner::Plot(const string win, const vector<double> x, const vector<double> y, const cv::Scalar color, int linewidth) {
   double minX = floor(*min_element(x.begin(), x.end()));
   double maxX = ceil(*max_element(x.begin(), x.end()));
   double minY = floor(*min_element(y.begin(), y.end()));
@@ -281,13 +278,9 @@ cv::Mat Planner::Plot(const string win, const vector<double> x,
   return outimg;
 }
 
-double Planner::Dis(const Pose2D p1, const Pose2D p2) {
-  return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
-}
+double Planner::Dis(const Pose2D p1, const Pose2D p2) { return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2)); }
 
-double Planner::Ang(const Pose2D p1, const Pose2D p2) {
-  return atan2(p2.y - p1.y, p2.x - p1.x);
-}
+double Planner::Ang(const Pose2D p1, const Pose2D p2) { return atan2(p2.y - p1.y, p2.x - p1.x); }
 
 double Planner::Uag(const double a) {
   double u = a;

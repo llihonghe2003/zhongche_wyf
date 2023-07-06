@@ -13,6 +13,8 @@
 
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <sensor_msgs/Imu.h>
+#include "std_msgs/Float64MultiArray.h"
 #include <nlink_parser/LinktrackNodeframe2.h>
 #include "cta_msgs/PosAll.h"
 #include "cta_msgs_control/ControlMode.h"
@@ -25,6 +27,7 @@
 #include "cta_msgs_planning/LocalRoute2d.h"
 #include "cta_msgs_sensor/Imu.h"
 #include "usrlib/usrlib.h"
+
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -255,7 +258,8 @@ class Controller {
   void Callback_UpdateSelfPose_2(const cta_msgs_perception::SelfPose::ConstPtr &msg);
   void Callback_UpdateAllPos_2(const cta_msgs_control::PredictPoint::ConstPtr &msg);
   void Callback_UpdatePlanTrj(const cta_msgs_planning::LocalRoute2d::ConstPtr &msg);
-  void Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg);
+  void xtark_Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg);
+  void yhs_Callback_UpdateTheta(const std_msgs::Float64MultiArray::ConstPtr &msg);
   void Callback_UpdatePoints(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
   void Callback_UpdateTheta_2(const nav_msgs::Odometry::ConstPtr &msg);
   void Callback_UpdatePoints_2(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);

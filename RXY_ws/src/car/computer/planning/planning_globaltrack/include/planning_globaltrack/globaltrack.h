@@ -14,6 +14,8 @@
 #include <opencv2/opencv.hpp>
 
 #include <nav_msgs/Odometry.h>
+#include <sensor_msgs/Imu.h>
+#include "std_msgs/Float64MultiArray.h"
 #include <nlink_parser/LinktrackNodeframe2.h>
 #include "cta_msgs/WayPoint2d.h"
 #include "cta_msgs_perception/SelfPose.h"
@@ -63,7 +65,7 @@ class Planner {
  public:
   void Callback_UpdateSelfPose(
       const cta_msgs_perception::SelfPose::ConstPtr &msg);
-  void Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg);
+  void yhs_Callback_UpdateTheta(const std_msgs::Float64MultiArray::ConstPtr &msg);
   void Callback_UpdatePoints(
       const nlink_parser::LinktrackNodeframe2::ConstPtr &msg);
 

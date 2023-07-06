@@ -12,14 +12,14 @@ Planner::Planner(ros::NodeHandle &nh, const double frq) {
   this->isRun = false;
 
   //订阅器     仿真位置
-  this->subSelfPose = rosNode.subscribe(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1, &Planner::Callback_UpdateSelfPose, this);
+  // this->subSelfPose = rosNode.subscribe(UsrLib::TOPIC_PERCEPTION_MOTIONINFO, 1, &Planner::Callback_UpdateSelfPose, this);
+ 
   //订阅器     实际位置
   // this->subSelfTheta = rosNode.subscribe("odom_raw",
   // 1,&Planner::Callback_UpdateTheta, this);
-  // this->subSelfTheta =rosNode.subscribe("odom", 1,
-  // &Planner::Callback_UpdateTheta, this); this->subSelfPoints =
-  // rosNode.subscribe( "nlink_linktrack_nodeframe2", 1,
-  // &Planner::Callback_UpdatePoints, this);
+  // this->subSelfTheta =rosNode.subscribe("odom", 1,  &Planner::Callback_UpdateTheta, this); 
+  this->subSelfTheta =rosNode.subscribe("/RPY", 1,  &Planner::yhs_Callback_UpdateTheta, this); 
+  this->subSelfPoints =rosNode.subscribe( "nlink_linktrack_nodeframe2", 1, &Planner::Callback_UpdatePoints, this);
 
   //发布器  不用
   this->pubBehDec = rosNode.advertise<cta_msgs_planning::DecisionBehavior>(UsrLib::TOPIC_PLAN_BEHAVIOR, 1);
@@ -41,7 +41,7 @@ void Planner::run() {
   // load global route
 
   ROS_ERROR_STREAM("当前车辆是：" << UsrLib::params);
-  string filename = string("/home/xtark/") + string(UsrLib::params["name"]) + string("/RXY_ws/src/route/") + string(UsrLib::params["reference"]) + string(".txt");
+  string filename = string("/home/") + string(UsrLib::params["type"]) +string("/")+ string(UsrLib::params["name"]) + string("/RXY_ws/src/route/") + string(UsrLib::params["reference"]) + string(".txt");
   ROS_ERROR_STREAM(filename);
   if (this->SetGobalRoute(filename)) {
     ROS_INFO("Success to Load Global Route !!!!!");
@@ -83,9 +83,10 @@ void Planner::Callback_UpdateSelfPose(const cta_msgs_perception::SelfPose::Const
 }
 
 //订阅真实位姿
-void Planner::Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg) {
-  nowPos.h = msg->pose.pose.position.z;
+void Planner::yhs_Callback_UpdateTheta(const std_msgs::Float64MultiArray::ConstPtr &msg) {
+  nowPos.h = msg->data[2]/180*3.14;
   this->isRun = true;
+  ROS_ERROR_STREAM("nowPos.h：" << msg->data[2]/180*3.14;);
 }
 
 //订阅真实位置
@@ -94,6 +95,7 @@ void Planner::Callback_UpdatePoints(const nlink_parser::LinktrackNodeframe2::Con
   nowPos.y = msg->pos_3d[1];
   //    ROS_INFO("************************x:%.6f,
   //    *********************************8y:%.2f\n",  nowPos.x, nowPos.y );
+  ROS_ERROR_STREAM("当前位置：（" << msg->pos_3d[0] << "," << msg->pos_3d[1] << ")");
 }
 
 bool Planner::PlanBehavior() {
@@ -198,7 +200,7 @@ bool Planner::PlanLocalTrajectory() {
       // %.3f", wp.rot, glbRoute[i].x, glbRoute[i].y, glbRoute[i+1].x,
       // glbRoute[i+1].y);
     }
-
+    // ROS_ERROR_STREAM("msgLocTrj.waypoints：" << msgLocTrj.waypoints.size());
     msgLocTrj.waypoints.push_back(wp);
     if (msgLocTrj.waypoints.size() >= Nx) {
       break;

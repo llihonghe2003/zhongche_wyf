@@ -5,6 +5,7 @@
 
     <arg name="namespace" default="xtark_01"/>
 
+
  <group ns="$(arg namespace)">
   <!-- 启动MPC_controller驱动包 -->
      <node pkg="usrlib" type="usrfunction" name="usrfunction" output="screen"></node>
@@ -16,25 +17,33 @@
 	<param name="odom_frame"             value="/odom"/>
     </node> -->
 
+    <!-- 启动yhs_can_control驱动包 -->
+    <node pkg="yhs_can_control" type="yhs_can_control_node" name="yhs_can_control_node" output="screen">
+	    <param name="odom_frame" value="odom"/>
+        <param name="base_link_frame" value="base_link"/>
+        <param name="tfUsed" value="false"/>
+    </node>
+
+
     <!-- 启动nlink_parser驱动包 -->
-    <!-- <node pkg="nlink_parser" type="linktrack" name="linktrack0" output="screen">
-        <param name="port_name" value="/dev/ttyUSB0" />
+    <node pkg="nlink_parser" type="linktrack" name="linktrack0" output="screen">
+        <param name="port_name" value="/dev/ttyUSB1" />
         <param name="baud_rate" value="921600" />
-    </node> -->
+    </node>
 
     <!-- 启动planning_globaltrack驱动包 -->
     <node pkg="planning_globaltrack" type="planning_globaltrack" name="planning_globaltrack" output="screen"></node>
         <rosparam file="$(find test_tools)/config/config.yaml"/>
 
     <!-- 启动获取UWB位置 -->
-    <!-- <node name="uwb_position" pkg="uwb_position" type="uwb_position.py" output="screen" respawn="false"/> -->
+    <node name="uwb_position" pkg="uwb_position" type="uwb_position.py" output="screen" respawn="false"/>
 
     <!-- 启动MPC_controller驱动包 -->
      <node pkg="MPC_controller" type="MPC_controller" name="MPC_controller" output="screen"></node>
             <rosparam file="$(find test_tools)/config/config.yaml"/>
     <!-- 启动MPC_controller驱动包 -->
-     <node pkg="simuctrl" type="simuctrl" name="simuctrl" output="screen">
-    </node>
+     <!-- <node pkg="simuctrl" type="simuctrl" name="simuctrl" output="screen">
+    </node> -->
     <!-- 启动MPC_controller驱动包 -->
      <!--node pkg="simuctrl_avoidance" type="simuctrl_avoidance" name="simuctrl_avoidance" output="screen">
     </node-->

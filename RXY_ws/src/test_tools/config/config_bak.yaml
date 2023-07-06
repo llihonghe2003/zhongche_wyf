@@ -1,6 +1,7 @@
 
 params:
   name: "xtark_01" #xtark_01 xtark_02
+  type: yhs # yhs xtark
   environment: "simulation" # simulation soloExp  multiExp
   reference: "foo666" # foo666 foo777
   data_num: "1"

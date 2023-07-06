@@ -213,14 +213,14 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
   this->rosLoopHz = frq;
   // OutFile.open(string("/home/xtark/") + string(UsrLib::params["name"]) + string("/RXY_ws/src/car/computer/control/MPC_controller/trajectory/ch_data.txt"));
   const char *data_path = nullptr;
-  std::string path = string("/home/xtark/") + string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + to_string(int(UsrLib::params["data_num"]));  //+ string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + string(UsrLib::params["data_num"]);
+  std::string path = string("/home/")+ string(UsrLib::params["type"]) +string("/")+ string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + to_string(int(UsrLib::params["data_num"]));  //+ string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + string(UsrLib::params["data_num"]);
   data_path = path.c_str();
   ROS_INFO_STREAM("创建" << UsrLib::params["data_num"] << "数据文件夹:" << mkdir(data_path, 0755));
-  string config_path = string("/home/xtark/") + string(UsrLib::params["name"]) + string("/RXY_ws/src/test_tools/config/config.yaml");
+  string config_path = string("/home/") + string(UsrLib::params["type"]) +string("/")+ string(UsrLib::params["name"]) + string("/RXY_ws/src/test_tools/config/config.yaml");
   YAML::Node yamlConfig = YAML::LoadFile(config_path);
   // int num = yamlConfig["params"]["data_num"].as<int>();
   yamlConfig["params"]["data_num"] = yamlConfig["params"]["data_num"].as<int>() + 1;
-  OutFile.open(string("/home/xtark/") + string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + to_string(int(UsrLib::params["data_num"])) + string("/") + string(UsrLib::params["name"]) + string("_data.txt"));
+  OutFile.open(string("/home/") + string(UsrLib::params["type"]) +string("/")+ string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + to_string(int(UsrLib::params["data_num"])) + string("/") + string(UsrLib::params["name"]) + string("_data.txt"));
 
   // ros::param::set("params/data_num", atoi(string(UsrLib::params["data_num"]).c_str()) + 1);
 
@@ -235,7 +235,8 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
   pubMotion = rosNode.advertise<cta_msgs_control::MotionControl>(UsrLib::TOPIC_CONTROL_MOTION, 1);
   pubLamp = rosNode.advertise<cta_msgs_control::LampControl>(UsrLib::TOPIC_CONTROL_LAMP, 1);
 
-  control_ada_ = rosNode.advertise<geometry_msgs::Twist>("cmd_vel", 10);      //发布控制信号
+  // control_ada_ = rosNode.advertise<geometry_msgs::Twist>("cmd_vel", 10);      //发布控制信号
+  control_ada_ = rosNode.advertise<geometry_msgs::Twist>("smoother_cmd_vel", 10);      //发布控制信号
   pos_3 = rosNode.advertise<cta_msgs_control::PredictPoint>("poseAll_3", 1);  //发布3车最优位置序列
 
   //订阅器
@@ -255,19 +256,28 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
     // AvoidancePose = rosNode.subscribe("msg_pose_avoidance", 1, &Controller::Callback_AvoidancePose, this);
 
   } else if (UsrLib::params["environment"] == "soloExp") {
+
+    //订阅本车规划的参考位置
+    subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1, &Controller::Callback_UpdatePlanTrj, this);
+
     ROS_INFO("订阅真实单车位姿信息");
     std::cout << UsrLib::params["environment"] << "!" << endl;
 
     //订阅本车的真实位姿信息
-    subTheta = rosNode.subscribe("odom", 1, &Controller::Callback_UpdateTheta, this);
+    // subTheta = rosNode.subscribe("odom", 1, &Controller::xtark_Callback_UpdateTheta, this);
+    subTheta = rosNode.subscribe("/RPY", 1, &Controller::yhs_Callback_UpdateTheta, this);
     subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1, &Controller::Callback_UpdatePoints, this);
 
   } else if (UsrLib::params["environment"] == "multiExp") {
     ROS_INFO("订阅真实多车位姿信息");
+
+    //订阅本车规划的参考位置
+    subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1, &Controller::Callback_UpdatePlanTrj, this);
+
     std::cout << UsrLib::params["environment"] << "!" << endl;
 
     //订阅本车真实位姿信息
-    subTheta = rosNode.subscribe("odom_raw", 1, &Controller::Callback_UpdateTheta, this);
+    subTheta = rosNode.subscribe("odom", 1, &Controller::xtark_Callback_UpdateTheta, this);
     subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1, &Controller::Callback_UpdatePoints, this);
 
     //订阅xtark_01车真实位姿信息
@@ -304,16 +314,19 @@ void Controller::DoControl(const ros::TimerEvent &e) {
   // this->ctrlVal.steerspeed = 0.0;
   // PublishTopics();
   ROS_ERROR_STREAM("1当前车辆是：" << UsrLib::params["name"]);
+  ROS_ERROR_STREAM("参考轨迹：" << refTrj.size());
 
   if (this->refTrj.size() == 0) {
     ROS_INFO("No Reference Route ------");
     return;
-  } else if (!AvoidancePos_flag) {
-    // ROS_INFO(string("等待") + string(UsrLib::params["name"]) + string("的位置信息"));
-    ROS_INFO_STREAM("等待" << UsrLib::params["avo_name"] << "的位置信息");
-    ROS_INFO("AvoidancePos_flag：%d", AvoidancePos_flag);
-    return;
-  } else {
+  } 
+  // else if (!AvoidancePos_flag) {
+  //   // ROS_INFO(string("等待") + string(UsrLib::params["name"]) + string("的位置信息"));
+  //   ROS_INFO_STREAM("等待" << UsrLib::params["avo_name"] << "的位置信息");
+  //   ROS_INFO("AvoidancePos_flag：%d", AvoidancePos_flag);
+  //   return;
+  // } 
+  else {
     GetGoalPose();
     AllController();
     // LampController();
@@ -378,7 +391,7 @@ void Controller::Callback_UpdateAllPos_2(const cta_msgs_control::PredictPoint::C
 
 // fg[1 + v_de_start + i] = dv_cons - v_de;
 // fg[1 + omega_e_start + i] = domega_cons - omega_de;
-void Controller::Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg) {
+void Controller::xtark_Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg) {
   nowPos.h = msg->pose.pose.position.z;
   static int runonce = 1;
   // if(runonce)
@@ -395,6 +408,25 @@ void Controller::Callback_UpdateTheta(const nav_msgs::Odometry::ConstPtr &msg) {
   }
   pos3_flag = 1;
 }
+
+void Controller::yhs_Callback_UpdateTheta(const std_msgs::Float64MultiArray::ConstPtr &msg) {
+  nowPos.h = msg->data[2]/180*3.14;
+  static int runonce = 1;
+  // if(runonce)
+  // {
+  //     angle = nowPos.h;
+  //     runonce = 0;
+  // }
+  nowPos.h = nowPos.h;
+  if (nowPos.h >= pi) {
+    nowPos.h -= 2 * pi;
+  }
+  if (nowPos.h <= -pi) {
+    nowPos.h += 2 * pi;
+  }
+  pos3_flag = 1;
+}
+
 void Controller::Callback_UpdatePoints(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg) {
   nowPos.x = msg->pos_3d[0];
   nowPos.y = msg->pos_3d[1];
@@ -439,8 +471,9 @@ void Controller::Callback_UpdatePlanTrj(const cta_msgs_planning::LocalRoute2d::C
     // p.v = 0.26;
     // ROS_INFO("************************x:%.6f,
     // *********************************Y:%.6f\n",  p.x, p.y );
-    this->refTrj.push_back(p);
+    this->refTrj.push_back(p);    
   }
+  // ROS_ERROR_STREAM("参考轨迹回调：" << refTrj.size());
   ref_flag = 1;
   // ROS_INFO("************************ok,
   // *********************************ok.\n");
@@ -635,7 +668,9 @@ void Controller::AllController() {
     }
     // Delta_f = Delta_f/pi *180;
     msgControl.linear.x = v_star;
-    msgControl.angular.z = Delta_f;
+    // msgControl.angular.z = Delta_f;
+    msgControl.angular.z = omega;
+
     //   msgControl.linear.x = 0.2;
     //  msgControl.angular.z = 0 ;
     // msgControl.angular.z = 0.5;

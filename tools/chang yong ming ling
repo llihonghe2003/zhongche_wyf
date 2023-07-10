@@ -1,1 +1,4 @@
 sudo usb_modeswitch -KW -v 0bda -p 1a2b
+
+#设置开机启动 
+sudo cp /usr/share/applications/fcitx.desktop /etc/xdg/autostart/

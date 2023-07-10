@@ -1,7 +1,7 @@
 params:
-  data_num: 57
-  type: yhs
-  name: xtark_01
-  environment: soloExp
-  reference: line
+  reference: foo666
   simulation: false
+  environment: multiExp
+  name: xtark_01
+  data_num: 30
+  type: yhs

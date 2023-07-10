@@ -62,7 +62,7 @@ T getParam(const std::string &name,
 // int FRAME_WIDTH = 0;
 // getParam<int>("cam/FRAME_WIDTH", 0);
 namespace MPCtrack {
-#define N 5
+#define N 7
 const double dt = 0.1;  // 采样周期
 int ym = 0;             /// 5;//global_tracking
 int DT = 1;
@@ -107,7 +107,7 @@ double Q_1 = 0.5;
 // double Q_2 = 1.856;
 double Q_2 = 0.5;  //(越大跟的越快)
 
-double P_1 = 0.2;
+double P_1 = 0.4;
 // double P_2 = 0.4;//(越大越缓)
 double P_2 = 0.2;
 
@@ -400,7 +400,7 @@ class FG_eval {
       //                                               (CppAD::pow(xe_ob, 2) +
       //                                                CppAD::pow(ye_ob,
       //                                                2)))));
-      fg[0] += lamuda_ob / (1 + CppAD::exp(-3 * (CppAD::pow(0.5 * D, 2) - (CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2)))));
+      fg[0] += lamuda_ob / (1 + CppAD::exp(-1.5 * (CppAD::pow(0.5 * D, 2) - (CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2)))));
     }
 
     // 初始约束

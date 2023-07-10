@@ -18,7 +18,7 @@ Planner::Planner(ros::NodeHandle &nh, const double frq) {
   // this->subSelfTheta = rosNode.subscribe("odom_raw",
   // 1,&Planner::Callback_UpdateTheta, this);
   // this->subSelfTheta =rosNode.subscribe("odom", 1,  &Planner::Callback_UpdateTheta, this); 
-  this->subSelfTheta =rosNode.subscribe("/RPY", 1,  &Planner::yhs_Callback_UpdateTheta, this); 
+  this->subSelfTheta =rosNode.subscribe("/xtark_01/RPY", 1,  &Planner::yhs_Callback_UpdateTheta, this); 
   this->subSelfPoints =rosNode.subscribe( "nlink_linktrack_nodeframe2", 1, &Planner::Callback_UpdatePoints, this);
 
   //发布器  不用
@@ -86,7 +86,7 @@ void Planner::Callback_UpdateSelfPose(const cta_msgs_perception::SelfPose::Const
 void Planner::yhs_Callback_UpdateTheta(const std_msgs::Float64MultiArray::ConstPtr &msg) {
   nowPos.h = msg->data[2]/180*3.14;
   this->isRun = true;
-  ROS_ERROR_STREAM("nowPos.h：" << msg->data[2]/180*3.14;);
+  ROS_ERROR_STREAM("nowPos.h：" << msg->data[2]/180*3.14);
 }
 
 //订阅真实位置

@@ -2,6 +2,7 @@
 double Distance = 0.3;
 
 ofstream OutFile;
+ofstream OutFile2;
 ofstream paramFile;
 // MPC class definition implementation.
 //
@@ -221,6 +222,7 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
   // int num = yamlConfig["params"]["data_num"].as<int>();
   yamlConfig["params"]["data_num"] = yamlConfig["params"]["data_num"].as<int>() + 1;
   OutFile.open(string("/home/") + string(UsrLib::params["type"]) +string("/")+ string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + to_string(int(UsrLib::params["data_num"])) + string("/") + string(UsrLib::params["name"]) + string("_data.txt"));
+  OutFile2.open(string("/home/") + string(UsrLib::params["type"]) +string("/")+ string(UsrLib::params["name"]) + string("/RXY_ws/src/data/") + to_string(int(UsrLib::params["data_num"])) + string("/xtark_02_data.txt"));
 
   // ros::param::set("params/data_num", atoi(string(UsrLib::params["data_num"]).c_str()) + 1);
 
@@ -256,35 +258,34 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
     // AvoidancePose = rosNode.subscribe("msg_pose_avoidance", 1, &Controller::Callback_AvoidancePose, this);
 
   } else if (UsrLib::params["environment"] == "soloExp") {
-
-    //订阅本车规划的参考位置
-    subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1, &Controller::Callback_UpdatePlanTrj, this);
-
     ROS_INFO("订阅真实单车位姿信息");
     std::cout << UsrLib::params["environment"] << "!" << endl;
-
+    
+    //订阅本车规划的参考位置
+    subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1, &Controller::Callback_UpdatePlanTrj, this);
+       
     //订阅本车的真实位姿信息
     // subTheta = rosNode.subscribe("odom", 1, &Controller::xtark_Callback_UpdateTheta, this);
-    subTheta = rosNode.subscribe("/RPY", 1, &Controller::yhs_Callback_UpdateTheta, this);
+    subTheta = rosNode.subscribe("/xtark_01/RPY", 1, &Controller::yhs_Callback_UpdateTheta, this);
     subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1, &Controller::Callback_UpdatePoints, this);
 
   } else if (UsrLib::params["environment"] == "multiExp") {
     ROS_INFO("订阅真实多车位姿信息");
+    std::cout << UsrLib::params["environment"] << "!" << endl;
 
     //订阅本车规划的参考位置
     subPlanTrj = rosNode.subscribe(UsrLib::TOPIC_PLAN_LOCALROUTE, 1, &Controller::Callback_UpdatePlanTrj, this);
 
-    std::cout << UsrLib::params["environment"] << "!" << endl;
-
+    
     //订阅本车真实位姿信息
-    subTheta = rosNode.subscribe("odom", 1, &Controller::xtark_Callback_UpdateTheta, this);
+    subTheta = rosNode.subscribe("/xtark_01/RPY", 1, &Controller::yhs_Callback_UpdateTheta, this);
     subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1, &Controller::Callback_UpdatePoints, this);
 
-    //订阅xtark_01车真实位姿信息
-    subTheta_2 = rosNode.subscribe(string("/") + string(UsrLib::params["avo_name"]) + string("/odom_raw"), 1, &Controller::Callback_UpdateTheta_2, this);
+    //订阅xtark_02车真实位姿信息
+    subTheta_2 = rosNode.subscribe(string("/") + string(UsrLib::params["avo_name"]) + string("/odom"), 1, &Controller::Callback_UpdateTheta_2, this);
     subPoints_2 = rosNode.subscribe(string("/") + string(UsrLib::params["avo_name"]) + string("/nlink_linktrack_nodeframe2"), 1, &Controller::Callback_UpdatePoints_2, this);
 
-    //订阅xtark_01的仿真避障位置
+    //订阅xtark_02的仿真避障位置
     AvoidancePose = rosNode.subscribe("/xtark_01/msg_perception_selfpose", 1, &Controller::Callback_AvoidancePose, this);
     /*
     //订阅2车仿真预测信息
@@ -320,12 +321,12 @@ void Controller::DoControl(const ros::TimerEvent &e) {
     ROS_INFO("No Reference Route ------");
     return;
   } 
-  // else if (!AvoidancePos_flag) {
-  //   // ROS_INFO(string("等待") + string(UsrLib::params["name"]) + string("的位置信息"));
-  //   ROS_INFO_STREAM("等待" << UsrLib::params["avo_name"] << "的位置信息");
-  //   ROS_INFO("AvoidancePos_flag：%d", AvoidancePos_flag);
-  //   return;
-  // } 
+  else if (!(AvoidancePos_flag||(pos2_flag&&point2_flag))) {
+    // ROS_INFO(string("等待") + string(UsrLib::params["name"]) + string("的位置信息"));
+    ROS_INFO_STREAM("等待" << UsrLib::params["avo_name"] << "的位置信息");
+    ROS_INFO("AvoidancePos_flag：%d", AvoidancePos_flag);
+    return;
+  } 
   else {
     GetGoalPose();
     AllController();
@@ -443,18 +444,21 @@ void Controller::Callback_UpdateTheta_2(const nav_msgs::Odometry::ConstPtr &msg)
   //     angle = nowPos_2.h;
   //     runonce = 0;
   // }
-  nowPos_2.h = nowPos_2.h;
-  if (nowPos_2.h >= pi) {
-    nowPos_2.h -= 2 * pi;
-  }
-  if (nowPos_2.h <= -pi) {
-    nowPos_2.h += 2 * pi;
-  }
-  pos2_flag = 1;
+    AvoidancePos.h = AvoidancePos.h;
+    if (AvoidancePos.h >= pi) {
+      AvoidancePos.h -= 2 * pi;
+    }
+    if (AvoidancePos.h <= -pi) {
+      AvoidancePos.h += 2 * pi;
+    }  
+    pos2_flag = 1;
 }
 void Controller::Callback_UpdatePoints_2(const nlink_parser::LinktrackNodeframe2::ConstPtr &msg) {
-  nowPos_2.x = msg->pos_3d[0];
-  nowPos_2.y = msg->pos_3d[1];
+  // nowPos_2.x = msg->pos_3d[0];
+  // nowPos_2.y = msg->pos_3d[1];
+  AvoidancePos.x = msg->pos_3d[0];
+  AvoidancePos.y = msg->pos_3d[1];
+  AvoidancePos.v = 0;
   // ROS_INFO("************************x:%.6f,
   // *********************************8y:%.2f\n",  nowPos.x, nowPos.y );
   point2_flag = 1;

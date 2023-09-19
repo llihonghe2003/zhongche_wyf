@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
   pubLoc_avoidance = nh.advertise<cta_msgs_perception::SelfPose>(
       "msg_pose_avoidance", 1);  //发布控制信号
 
-  x = 4;
-  y = 0;
+  x = 6;
+  y = 6;
   theta = pi / 4 * 3;
 
   v = 0.05 * sqrt(2) * 2;
@@ -64,10 +64,15 @@ int main(int argc, char **argv) {
     // }
 
     // msgLoc.tssec = ros::Time::now();
-    msgLoc.state.pos.x = x;
-    msgLoc.state.pos.y = y;
-    msgLoc.state.rot.z = theta;
-    msgLoc.state.vel.x = v;
+    //发布障碍物位姿
+    // msgLoc.state.pos.x = x;
+    // msgLoc.state.pos.y = y;
+    // msgLoc.state.rot.z = theta;
+    // msgLoc.state.vel.x = v;
+    msgLoc.state.pos.x = 0.1;
+    msgLoc.state.pos.y = 0.1;
+    msgLoc.state.rot.z = 0.1;
+    msgLoc.state.vel.x = 0;
     pubLoc_avoidance.publish(msgLoc);
     // ROS_INFO("------xxccxeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" );
     ros::Rate loop_rate(10);

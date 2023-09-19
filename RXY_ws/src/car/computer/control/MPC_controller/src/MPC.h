@@ -62,7 +62,7 @@ T getParam(const std::string &name,
 // int FRAME_WIDTH = 0;
 // getParam<int>("cam/FRAME_WIDTH", 0);
 namespace MPCtrack {
-#define N 7
+#define N 10
 const double dt = 0.1;  // 采样周期
 int ym = 0;             /// 5;//global_tracking
 int DT = 1;
@@ -396,11 +396,12 @@ class FG_eval {
       // fg[0] += 1/D * ( e_ob - D);
       // fg[0] += lamuda_ob / (1+CppAD::exp(-k_ob * ( CppAD::pow(D, 2)-(
       // CppAD::pow(xe_ob, 2)+ CppAD::pow(ye_ob, 2)))));
-      // fg[0] += lamuda_ob / (1 + CppAD::exp(-k_ob * (CppAD::pow(0.5, 2) -
-      //                                               (CppAD::pow(xe_ob, 2) +
-      //                                                CppAD::pow(ye_ob,
-      //                                                2)))));
-      fg[0] += lamuda_ob / (1 + CppAD::exp(-1.5 * (CppAD::pow(0.5 * D, 2) - (CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2)))));
+      // fg[0] += lamuda_ob / (1 + CppAD::exp(-k_ob * (CppAD::pow(0.5, 2) - (CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob,2)))));
+      //第一篇避障参数
+      // fg[0] += lamuda_ob / (1 + CppAD::exp(-1.5 * (CppAD::pow(0.5 * D, 2) - (CppAD::pow(xe_ob, 2) + CppAD::pow(ye_ob, 2)))));
+      //编队避障参数
+      // fg[0] += lamuda_ob / (1 + CppAD::exp(-1.5 * (CppAD::pow(0.5 * 1, 2) - (CppAD::pow(xe_ob, 2) - CppAD::pow(ye_ob, 2)))));
+
     }
 
     // 初始约束

@@ -269,6 +269,13 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
     subTheta = rosNode.subscribe("/xtark_01/RPY", 1, &Controller::yhs_Callback_UpdateTheta, this);
     subPoints = rosNode.subscribe("nlink_linktrack_nodeframe2", 1, &Controller::Callback_UpdatePoints, this);
 
+    //订阅xtark_02的仿真避障位置
+    AvoidancePose = rosNode.subscribe("/xtark_01/msg_pose_avoidance", 1, &Controller::Callback_AvoidancePose, this);
+    //手动设置障碍物信息
+    // AvoidancePos.x=0;
+    // AvoidancePos.y=0;
+    // AvoidancePos.h=0;
+  
   } else if (UsrLib::params["environment"] == "multiExp") {
     ROS_INFO("订阅真实多车位姿信息");
     std::cout << UsrLib::params["environment"] << "!" << endl;
@@ -286,7 +293,8 @@ Controller::Controller(ros::NodeHandle &nh, const double frq) {
     subPoints_2 = rosNode.subscribe(string("/") + string(UsrLib::params["avo_name"]) + string("/nlink_linktrack_nodeframe2"), 1, &Controller::Callback_UpdatePoints_2, this);
 
     //订阅xtark_02的仿真避障位置
-    AvoidancePose = rosNode.subscribe("/xtark_01/msg_perception_selfpose", 1, &Controller::Callback_AvoidancePose, this);
+    // AvoidancePose = rosNode.subscribe("/xtark_01/msg_perception_selfpose", 1, &Controller::Callback_AvoidancePose, this);
+
     /*
     //订阅2车仿真预测信息
     subSelfPose_2 =
@@ -328,7 +336,10 @@ void Controller::DoControl(const ros::TimerEvent &e) {
     return;
   } 
   else {
+
+
     GetGoalPose();
+
     AllController();
     // LampController();
     PublishTopics();
@@ -360,7 +371,7 @@ void Controller::Callback_AvoidancePose(const cta_msgs_perception::SelfPose::Con
   AvoidancePos.y = msg->state.pos.y;
   AvoidancePos.h = msg->state.rot.z;
   AvoidancePos.v = msg->state.vel.x;
-  ROS_INFO_STREAM("输出" << UsrLib::params["avo_name"] << "的位置信息");
+  ROS_INFO_STREAM("输出障碍物" << UsrLib::params["avo_name"] << "的位置信息");
   AvoidancePos_flag = 1;
 }
 
@@ -556,7 +567,7 @@ void Controller::GetGoalPose() {
   int goalnum = min(refnum, (int)refTrj.size());
   goalnumGolbal = goalnum;
   // int flag =goalnumGolbal  + ym;
-  int flag = 0 + ym;
+  int flag = 3 + ym;
   //真正的参考序列
   for (int i = 0; i <= N; i++) {
     if (flag >= refTrj.size() - N - 1) flag = refTrj.size() - N - 1;
@@ -619,10 +630,15 @@ void Controller::AllController() {
     Eigen::VectorXd state_1(3);
     Eigen::VectorXd state_avoidance(4);
     state_1 << x_inf, y_inf, theta_inf;
+
     state_avoidance << AvoidancePos.x, AvoidancePos.y, AvoidancePos.h, AvoidancePos.v;
     Eigen::VectorXd control_out(2);
     control_out << v_star, Delta_f;
 
+    ROS_ERROR_STREAM("开始求解！");
+    ROS_ERROR_STREAM("当前位姿：" << "("<<x_inf<<","<<y_inf<<","<<theta_inf<<")");
+    ROS_ERROR_STREAM("参考位姿：" << "("<<X_ref(0)<<","<<Y_ref(0)<<","<<Theta_ref(0)<<","<<V_ref(0)<<")");
+    ROS_ERROR_STREAM("障碍物位姿" << "("<<AvoidancePos.x<<","<<AvoidancePos.y<<","<<AvoidancePos.h<<","<<AvoidancePos.v<<")");
     // 求解
     Solution sol = mpc.Solve(state_1, state_avoidance, X_ref, Y_ref, Theta_ref, V_ref, control_out);
     ref_flag = 0;

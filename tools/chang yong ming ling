@@ -2,3 +2,9 @@ sudo usb_modeswitch -KW -v 0bda -p 1a2b
 
 #设置开机启动 
 sudo cp /usr/share/applications/fcitx.desktop /etc/xdg/autostart/
+
+#修复roscore执行失败问题
+sudo ldconfig /usr/local/python3.7/lib
+
+#查看usb设备
+ls -l /dev/ttyUSB*

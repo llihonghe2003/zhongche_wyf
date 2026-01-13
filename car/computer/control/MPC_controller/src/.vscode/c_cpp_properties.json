@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/devel/include/**",
+                "/opt/ros/kinetic/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/braking/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/driver/can/canio/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/control/controller_puretracking/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/driver/ins550d/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/localization/localization_gnss/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/planning/planning_doubleshift/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/planning/planning_globaltrack/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/planning/planning_odr/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/computer/planning/planning_straight/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/Radar/radar_ros_interface-nick-onlyK79/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/assister/savetrj/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/driver/can/canopen/socketcan_bridge/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/driver/can/canopen/socketcan_interface/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/usb_cam/include/**",
+                "/home/tju001/CtaAuto/ctaauto_v.1.0/src/usrlib/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

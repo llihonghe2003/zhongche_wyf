@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "bitset": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "valarray": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp"
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/xtark/cartographer_ws/install_isolated/lib/python2.7/dist-packages",
+        "/home/xtark/ros_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/home/xtark/.local/lib/python3.6/site-packages"
+    ]
+}

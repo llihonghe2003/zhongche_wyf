@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/opt/ros/melodic/include/**",
+        "/home/xtark/ros_ws/devel/include/**",
+        "/home/xtark/ros_ws/src/car/computer/localization/localization_gnss/include/**",
+        "/home/xtark/ros_ws/src/car/computer/planning/planning_doubleshift/include/**",
+        "/home/xtark/ros_ws/src/car/computer/planning/planning_globaltrack/include/**",
+        "/home/xtark/ros_ws/src/car/computer/planning/planning_straight/include/**",
+        "/home/xtark/ros_ws/src/car/computer/simuctrl/include/**",
+        "/home/xtark/ros_ws/src/turtlebot3_gazebo/include/**",
+        "/home/xtark/ros_ws/src/car/usrlib/include/**",
+        "/home/xtark/ros_ws/src/xtark_ctl/include/**",
+        "/home/xtark/ros_ws/src/xtark_viz/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}

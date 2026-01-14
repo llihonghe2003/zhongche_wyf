@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/home/yhs/xtark_02/RXY_ws/src",
+    "files.associations": {
+        "cmath": "cpp"
+    }
+}
